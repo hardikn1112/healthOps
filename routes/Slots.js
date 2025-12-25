@@ -3,6 +3,8 @@ const router = express.Router();
 const {Slot, validateSlot} = require('../models/Slots');
 const auth = require('../middleware/Auth');
 const role = require('../middleware/Role');
+const eventBus = require('../events/eventBus');
+const EVENTS = require('../events/events');
 
 router.post('/', [auth,role], async (req,res) => {
     // Validate slot - req.body
@@ -25,7 +27,14 @@ router.post('/', [auth,role], async (req,res) => {
     const slot = await Slot.create({
         doctorId: req.user._id,
         startTime,
-        endTime
+        endTime 
+    });
+
+    // Slot Creation Notification
+    eventBus.emit(EVENTS.SLOT_CREATED, {
+        message: 'Slot Created',
+        slotId: slot._id,
+        doctorId: slot.doctorId
     });
 
     res.status(201).send(`Slot Created... ${slot}`);

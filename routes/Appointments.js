@@ -3,6 +3,8 @@ const router = express.Router();
 const {Appointment, validateAppointment} = require('../models/Appointments');
 const auth = require('../middleware/Auth');
 const {Slot} = require('../models/Slots');
+const eventBus = require('../events/eventBus');
+const EVENTS = require('../events/events');
 
 router.post('/', auth, async (req,res) => {
     // Validate Appointment - req.body
@@ -27,8 +29,19 @@ router.post('/', auth, async (req,res) => {
         });
 
         await appointment.save();
+
+        // Notification Emitter
+        eventBus.emit(EVENTS.APPOINTMENT_CREATED, {
+            message: 'Appointment Booked',
+            appointmentId: appointment._id,
+            clientId: appointment.clientId,
+            doctorId: appointment.doctorId
+        });
+
         res.status(201).send('Appointment Booked');
-    }
+  }
+
+
     catch (err) {
         // Rollback if appointment creation fails
         await Slot.findByIdAndUpdate(slotId, { isBooked: false });
@@ -52,6 +65,14 @@ router.put('/cancel/:id', auth, async (req,res) => {
         await appointment.save();
 
         await Slot.findByIdAndUpdate(appointment.slotId, { isBooked: false });
+
+        // Cancellation Notification
+        eventBus.emit(EVENTS.APPOINTMENT_CANCELLED, {
+            message: 'Appointment Cancelled',
+            appointmentId: appointment._id,
+            clientId: appointment.clientId,
+            doctorId: appointment.doctorId
+        });
 
         res.send('Appointment Cancelled');
     }

@@ -5,6 +5,7 @@ const register = require('./routes/Register');
 const login = require('./routes/Login');
 const slot = require('./routes/Slots');
 const appointment = require('./routes/Appointments');
+require('./Notifications/notification.listener');
 const app = express();
 const port = 3000;
 
