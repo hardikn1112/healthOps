@@ -34,3 +34,14 @@ eventBus.on(EVENTS.SLOT_CREATED, (payload) => {
   }
 });
 
+eventBus.on(EVENTS.SLOT_DELETED, (payload) => {
+  try {
+    console.log('Notification triggered:', payload);
+
+    // await sendEmail(payload.userId)
+
+  } catch (err) {
+    console.error('Notification error:', err.message);
+  }
+});
+

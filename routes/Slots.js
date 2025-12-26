@@ -40,4 +40,23 @@ router.post('/', [auth,role], async (req,res) => {
     res.status(201).send(`Slot Created... ${slot}`);
 });
 
+router.delete('/delete/:id', [auth, role], async (req,res)=>{
+    // Valodate Slot ID - req.params.id
+    const slot = await Slot.findById(req.params.id);
+    if(!slot) return res.status(400).send('Invalid Slot');
+
+    // Deleting the Slot
+    const deletedSlot = await Slot.deleteOne({_id:req.params.id});
+
+    // Slot Deletion Notification
+    eventBus.emit(EVENTS.SLOT_DELETED, {
+        message: 'Slot Deleted',
+        slotId: slot._id,
+        doctorId: slot.doctorId
+    });
+
+    // Return Deleted Slot
+    res.send(`Slot Deleted.... ${deletedSlot}`);
+});
+
 module.exports = router;
