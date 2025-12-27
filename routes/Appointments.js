@@ -30,13 +30,18 @@ router.post('/', auth, async (req,res) => {
 
         await appointment.save();
 
-        // Notification Emitter
-        eventBus.emit(EVENTS.APPOINTMENT_CREATED, {
-            message: 'Appointment Booked',
+        const payload = {
+            slotId: slotId,
             appointmentId: appointment._id,
             clientId: appointment.clientId,
-            doctorId: appointment.doctorId
-        });
+            doctorId: appointment.doctorId,
+            startTime: slot.startTime
+        }
+
+        // Notification Emitter
+        eventBus.emit(EVENTS.APPOINTMENT_CREATED, payload);
+
+
 
         res.status(201).send('Appointment Booked');
   }
@@ -57,6 +62,8 @@ router.put('/cancel/:id', auth, async (req,res) => {
             status: 'Booked'
         });
 
+        const slot = await Slot.findById(appointment.slotId);
+
         if (!appointment) {
             res.status(400).send('Appoinment not found');
         }
@@ -67,12 +74,15 @@ router.put('/cancel/:id', auth, async (req,res) => {
         await Slot.findByIdAndUpdate(appointment.slotId, { isBooked: false });
 
         // Cancellation Notification
-        eventBus.emit(EVENTS.APPOINTMENT_CANCELLED, {
-            message: 'Appointment Cancelled',
+        const payload = {
             appointmentId: appointment._id,
             clientId: appointment.clientId,
-            doctorId: appointment.doctorId
-        });
+            doctorId: appointment.doctorId,
+            startTime: slot.startTime          
+        }
+
+        // Notification Emitter
+        eventBus.emit(EVENTS.APPOINTMENT_CANCELLED, payload);
 
         res.send('Appointment Cancelled');
     }

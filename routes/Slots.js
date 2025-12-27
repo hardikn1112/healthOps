@@ -31,11 +31,14 @@ router.post('/', [auth,role], async (req,res) => {
     });
 
     // Slot Creation Notification
-    eventBus.emit(EVENTS.SLOT_CREATED, {
-        message: 'Slot Created',
+    const payload = {
         slotId: slot._id,
-        doctorId: slot.doctorId
-    });
+        doctorId: slot.doctorId,
+        startTime: slot.startTime
+    }
+
+    // Slot Deletion Notification
+    eventBus.emit(EVENTS.SLOT_CREATED, payload);
 
     res.status(201).send(`Slot Created... ${slot}`);
 });
@@ -48,12 +51,14 @@ router.delete('/delete/:id', [auth, role], async (req,res)=>{
     // Deleting the Slot
     const deletedSlot = await Slot.deleteOne({_id:req.params.id});
 
-    // Slot Deletion Notification
-    eventBus.emit(EVENTS.SLOT_DELETED, {
-        message: 'Slot Deleted',
+    const payload = {
         slotId: slot._id,
-        doctorId: slot.doctorId
-    });
+        doctorId: slot.doctorId,
+        startTime: slot.startTime
+    }
+
+    // Slot Deletion Notification
+    eventBus.emit(EVENTS.SLOT_DELETED, payload);
 
     // Return Deleted Slot
     res.send(`Slot Deleted.... ${deletedSlot}`);
